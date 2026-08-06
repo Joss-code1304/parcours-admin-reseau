@@ -1,5 +1,0 @@
-Service	Réseau           Masque	  Plage utile	  Broadcast
-Ventes	10.10.0.0	        /26	    .1–.62	      .63
-Comptabilité	10.10.0.64	/27	    .65–.94	      .95
-Direction	10.10.0.96	    /28	    .97–.110	    .111
-Management	10.10.0.112	  /29	    .113–.118	    .119
