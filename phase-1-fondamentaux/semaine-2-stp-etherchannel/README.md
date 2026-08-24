@@ -56,6 +56,82 @@ EtherChannel. Un des deux câbles physiques a été débranché en pleine
 simulation : le trafic a continué à passer sans interruption, la charge 
 basculant automatiquement sur le câble restant.
 
+## Preuve — sorties de commandes
+
+### Root bridge avant configuration manuelle
+
+Election par défaut sur l'adresse MAC la plus basse, sans notion de position 
+stratégique dans le réseau :
+
+Switch#show spanning-tree
+VLAN0001
+Spanning tree enabled protocol ieee
+Root ID Priority 32769
+Address 0040.0B0E.86AA
+This bridge is the root
+Hello Time 2 sec Max Age 20 sec Forward Delay 15 sec
+
+Bridge ID Priority 32769 (priority 32768 sys-id-ext 1)
+Address 0040.0B0E.86AA
+Hello Time 2 sec Max Age 20 sec Forward Delay 15 sec
+Aging Time 20
+
+Interface Role Sts Cost Prio.Nbr Type
+
+Fa0/1 Desg FWD 19 128.1 P2p
+Fa0/3 Desg FWD 19 128.3 P2p
+Fa0/2 Desg FWD 19 128.2 P2p
+
+
+### Root bridge après application de `spanning-tree vlan 1 root primary`
+
+Switch#show spanning-tree
+VLAN0001
+Spanning tree enabled protocol ieee
+Root ID Priority 24577
+Address 00E0.A3B9.EDB5
+This bridge is the root
+Hello Time 2 sec Max Age 20 sec Forward Delay 15 sec
+
+Bridge ID Priority 24577 (priority 24576 sys-id-ext 1)
+Address 00E0.A3B9.EDB5
+Hello Time 2 sec Max Age 20 sec Forward Delay 15 sec
+Aging Time 20
+
+Interface Role Sts Cost Prio.Nbr Type
+
+Fa0/3 Desg FWD 19 128.3 P2p
+Fa0/1 Desg FWD 19 128.1 P2p
+Fa0/2 Desg FWD 19 128.2 P2p
+
+
+La priorité passe de 32769 à 24577 : un nouveau switch, choisi 
+délibérément plutôt que par défaut, devient root — sans jamais 
+bloquer aucun de ses propres ports.
+
+### EtherChannel — état final validé des deux côtés du lien
+
+Switch#show etherchannel summary
+Flags: D - down P - in port-channel
+I - stand-alone s - suspended
+H - Hot-standby (LACP only)
+R - Layer3 S - Layer2
+U - in use f - failed to allocate aggregator
+u - unsuitable for bundling
+w - waiting to be aggregated
+d - default port
+
+Number of channel-groups in use: 1
+Number of aggregators: 1
+
+Group Port-channel Protocol Ports
+------+-------------+-----------+----------------------------------------------
+1 Po1(SU) LACP Fa0/1(P) Fa0/2(P)
+
+
+Les deux ports affichent `(P)` — bien intégrés au port-channel, traités 
+comme un lien logique unique par STP.
+
 ## Incidents rencontrés et résolus
 
 **Incident 1 — Plage d'interfaces trop large**
