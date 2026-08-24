@@ -6,3 +6,4 @@ OSPF, ACL, NAT/PAT, DHCP, DNS, Wireshark, Cisco IOS.
 ## Semaines
 
 - [Semaine 1 — Subnetting VLSM & VLAN](semaine-1-subnetting/)
+- [Semaine 2 — STP & EtherChannel](semaine-2-stp-etherchannel/)
