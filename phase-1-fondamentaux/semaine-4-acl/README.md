@@ -110,3 +110,51 @@ s'applique et les règles suivantes ne sont plus consultées.
 - **Refus implicite** : une règle invisible `deny any any` existe toujours 
 en fin de liste — sans un `permit` explicite final, tout le trafic non 
 listé est bloqué.
+
+## Complément — filtrage par protocole et port
+
+**Scénario enrichi** : le poste `10.10.0.116` doit pouvoir pinguer le réseau 
+Direction (ICMP autorisé), mais n'a plus aucun autre accès vers ce réseau 
+— y compris le web, explicitement testé.
+
+**Configuration appliquée** (nouvelle ACL 110, remplace l'ACL 100 sur 
+l'interface) :
+
+access-list 110 permit icmp host 10.10.0.116 10.10.0.96 0.0.0.15 echo
+access-list 110 deny ip host 10.10.0.116 10.10.0.96 0.0.0.15
+access-list 110 permit ip any any
+
+interface GigabitEthernet0/0.40
+ip access-group 110 in
+
+
+**Preuve — ping désormais autorisé (contrairement à l'ACL précédente) :**
+
+Router#show access-lists
+Extended IP access list 110
+10 permit icmp host 10.10.0.116 10.10.0.96 0.0.0.15 echo (4 match(es))
+30 deny ip host 10.10.0.116 10.10.0.96 0.0.0.15
+40 permit ip any any (4 match(es))
+
+
+**Preuve — accès au reste du réseau toujours fonctionnel :**
+
+C:>ping 10.10.0.7
+
+Pinging 10.10.0.7 with 32 bytes of data:
+Reply from 10.10.0.7: bytes=32 time<1ms TTL=127
+Reply from 10.10.0.7: bytes=32 time=11ms TTL=127
+Reply from 10.10.0.7: bytes=32 time=11ms TTL=127
+Reply from 10.10.0.7: bytes=32 time=11ms TTL=127
+
+Ping statistics for 10.10.0.7:
+Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)
+
+
+## Point clé retenu
+
+**Une seule ACL par interface et par direction (`in`/`out`) peut être active 
+à la fois.** Appliquer une nouvelle ACL avec `ip access-group` sur une 
+interface déjà configurée **remplace** l'ACL précédente, elle ne s'ajoute 
+pas à elle — l'ancienne ACL reste définie dans la configuration du routeur, 
+mais n'a plus aucun effet tant qu'elle n'est pas réappliquée explicitement.
